@@ -161,7 +161,7 @@ lisjoin(keyval_tibble, named_list, .key = key)
     ## 10 h10   0.890 <dbl [1]>
     ## # … with 1,352 more rows
 
-Right now `lisjoin` supports key-guessing, type stable,
+Right now `lisjoin` supports key-guessing, type stability and
 left/right/inner/full joins. For example, since we know the output is
 going to be a double-precision number:
 
