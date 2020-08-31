@@ -50,11 +50,22 @@ left_join(keyval_tibble, named_list, by = character(), copy = TRUE)
 
 ``lisjoin``, as of now, provides a lazy prototypical approach:
 
-```{R, error = TRUE}
+```{R, error = TRUE, message = FALSE, warning = FALSE}
 library(lisjoin)
+
 lisjoin(keyval_tibble, named_list, .key = key)
 ```
-Right now `lisjoin` supports key-guessing, type stable, left/right/inner/full joins.
+
+Right now `lisjoin` supports key-guessing, type stable, left/right/inner/full joins. For example, since we know the output is going to be a double-precision number:
+
+```{R, error = TRUE, message = FALSE, warning = FALSE}
+library(lisjoin)
+
+lisjoin(keyval_tibble, named_list, .key = key, type = 'dbl')
+```
+
+
+
 
 ### Long term goals
 

@@ -2,7 +2,7 @@
 #'
 #' @param .tibble A tibble to be joined to `.list`
 #' @param .list a named list. Passing an unnamed list will throw an error.
-#' @param key a symbol containing the variable name in `.tibble` to be used as key.
+#' @param .key a symbol containing the variable name in `.tibble` to be used as key.
 #' @param name name of the new variable with matched values from `.list`. Defaults to "val".
 #' @param strategy How should values be matched? Specify either 'left', 'right', 'inner' or 'full' to use the matching `dplyr::x_join`. Defaults to 'left'.
 #' @param types Should the operation enforce types? Defaults to no types, but users can enforce by choosing among 'int', 'dbl', 'chr' and 'lgl'.
@@ -14,25 +14,26 @@
 #' @export
 
 
-lisjoin <- function(.tibble, .list, .key = NULL,
+lisjoin <- function(.tibble, .list, .key,
                     name = "val", strategy = "left",
-                    types = NULL, .key_guessing = TRUE) {
+                    types, .key_guessing = TRUE) {
 
-  if(is.null(.key) & length(possible_keys) == 1 & .key_guessing) {
+  if(missing(.key) & length(intersect(names(.tibble), names(.list))) == 1 & .key_guessing) {
 
     possible_keys <- intersect(names(.tibble), names(.list))
     rlang::inform(message = glue::glue("Guessing {possible_keys} as key. Consider turning off parameter .key_guessing in production environment.") %>% as.character())
 
-  } else if(is.null(.key) & length(possible_keys) == 1 & !.key_guessing) {
+  } else if(missing(.key) & length(intersect(names(.tibble), names(.list))) == 1 & !.key_guessing) {
 
     rlang::abort("No key provided")
 
-  } else if (!is.null(.key)){
+  } else if (!missing(.key)) {
 
     .key <- rlang::ensym(.key)
     name <- rlang::sym(name)
 
   }
+
 
   if("list_val" %in% names(.tibble)) {
 
@@ -40,7 +41,8 @@ lisjoin <- function(.tibble, .list, .key = NULL,
 
   }
 
-  if(is.null(types)) { # check for nulity
+
+  if(rlang::is_missing(types)) { # check for nulity
 
     specified_map <- purrr::map
 
@@ -60,6 +62,7 @@ lisjoin <- function(.tibble, .list, .key = NULL,
       )
 
   }
+
 
   if(!strategy %in% c("left", "right", "inner", "full")) {
 
@@ -102,8 +105,9 @@ lisjoin <- function(.tibble, .list, .key = NULL,
 
 
 
-  .listib <- tibble(key = names(.list),
-                    list_val = specified_map(key, ~ purrr::pluck(.list, .x)))
+  .listib <- tibble::tibble(key = names(.list)) %>%
+              dplyr::mutate(list_val = specified_map(key, ~ purrr::pluck(.list, .x)))
+
 
   specified_join(.tibble, .listib, by = rlang::as_string(.key))
 
