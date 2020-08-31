@@ -1,0 +1,61 @@
+---
+title: "lisjoin"
+output: github_document
+---
+
+A small package with list-tibble join operations.
+
+# Motivation
+
+There no native strictly key-pair data structure to R. There is, however, a sufficently good first-approach which is a named list.
+
+```{R}
+{
+  ids <- paste0(sample(letters, size = 1000, replace = TRUE), sample(1:10, 4, replace = TRUE))
+  named_list <- as.list(rnorm(1000))
+  names(named_list) <- ids
+  head(named_list)
+}
+```
+
+And this approach can get you far-ish.
+
+```{R}
+library(tidyverse)
+
+pluck(named_list, sample(ids, 1)) 
+
+# update specific values
+ids_to_update <- sample(ids, 5)
+
+modify_at(named_list, 
+          ids_to_update, 
+          function(x) 2*x - 3) ->
+  updated_list
+
+sample(named_list, 20) %>% # recover ids given condition
+  keep(~ .x < 0) %>%
+  names()
+```
+And by that I mean this far.
+
+```{R, error = TRUE}
+(tibble(key = sample(ids, 100),
+       val = runif(100)) ->
+  keyval_tibble)
+
+left_join(keyval_tibble)
+left_join(keyval_tibble, named_list, by = character(), copy = TRUE)
+```
+
+``lisjoin``, as of now, provides a lazy prototypical approach:
+
+```{R, error = TRUE}
+library(lisjoin)
+lisjoin(keyval_tibble, named_list, .key = key)
+```
+Right now `lisjoin` supports key-guessing, type stable, left/right/inner/full joins.
+
+### Long term goals
+
+This package is partly inspired primarely by clojure's map structure, purrr's filosophy and design. In the long term I see it as a tool allowing tidy data workflows on lists. 

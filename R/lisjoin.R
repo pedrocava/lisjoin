@@ -6,6 +6,7 @@
 #' @param name name of the new variable with matched values from `.list`. Defaults to "val".
 #' @param strategy How should values be matched? Specify either 'left', 'right', 'inner' or 'full' to use the matching `dplyr::x_join`. Defaults to 'left'.
 #' @param types Should the operation enforce types? Defaults to no types, but users can enforce by choosing among 'int', 'dbl', 'chr' and 'lgl'.
+#' @param .key_guessing Should keys be guessed if not provided? Defaults to true.
 #'
 #' @import rlang
 #' @import dplyr
@@ -13,11 +14,31 @@
 #' @export
 
 
-lisjoin <- function(.tibble, .list, .key,
-                    name = "val", strategy = "left", types = NULL) {
+lisjoin <- function(.tibble, .list, .key = NULL,
+                    name = "val", strategy = "left",
+                    types = NULL, .key_guessing = TRUE) {
 
-  .key <- rlang::ensym(.key)
-  name <- rlang::sym(name)
+  if(is.null(.key) & length(possible_keys) == 1 & .key_guessing) {
+
+    possible_keys <- intersect(names(.tibble), names(.list))
+    rlang::inform(message = glue::glue("Guessing {possible_keys} as key. Consider turning off parameter .key_guessing in production environment.") %>% as.character())
+
+  } else if(is.null(.key) & length(possible_keys) == 1 & !.key_guessing) {
+
+    rlang::abort("No key provided")
+
+  } else if (!is.null(.key)){
+
+    .key <- rlang::ensym(.key)
+    name <- rlang::sym(name)
+
+  }
+
+  if("list_val" %in% names(.tibble)) {
+
+    rlang::abort("Please rename variable ``list_vall`` in the tibble")
+
+  }
 
   if(is.null(types)) { # check for nulity
 
@@ -79,10 +100,12 @@ lisjoin <- function(.tibble, .list, .key,
       strategy
       )
 
-  .listib <- tibble(key = names(.list),
-                    val = specified_map(key, ~ purrr::pluck(.list, .x)))
 
-  specified_join(.tibble, .listib)
+
+  .listib <- tibble(key = names(.list),
+                    list_val = specified_map(key, ~ purrr::pluck(.list, .x)))
+
+  specified_join(.tibble, .listib, by = rlang::as_string(.key))
 
 
 }
