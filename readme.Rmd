@@ -11,8 +11,9 @@ There no native strictly key-pair data structure to R. There is, however, a suff
 
 ```{R}
 {
-  ids <- paste0(sample(letters, size = 1000, replace = TRUE), sample(1:10, 4, replace = TRUE))
-  named_list <- rep(list(rnorm(10)), 1000)
+  ids <- paste0(sample(letters, size = 1000, replace = TRUE), 
+                sample(1:30, 4, replace = TRUE))
+  named_list <- purrr::map(1:1000, function(.x) rnorm(10))
   names(named_list) <- ids
   head(named_list)
 }
@@ -20,7 +21,7 @@ There no native strictly key-pair data structure to R. There is, however, a suff
 
 And this approach can get you far-ish.
 
-```{R}
+```{R messages = FALSE, warning = FALSE}
 library(tidyverse)
 
 pluck(named_list, sample(ids, 1)) 
@@ -33,8 +34,8 @@ modify_at(named_list,
           function(x) 2*x - 3) ->
   updated_list
 
-sample(named_list, 20) %>% # recover ids given condition
-  keep(~ mean(.x) < 0) %>%
+sample(named_list, 200) %>% # recover ids given condition
+  keep(~ mean(.x) < -.5) %>%
   names()
 ```
 And by that I mean this far.
@@ -68,6 +69,7 @@ map(named_list,
           .key = key,
           type = 'dbl')
 ```
+
 This feature is still under work, in the future expect it to work with length > 1 on the list's elements, with automatic unnesting.
 
 ### Long term goals
