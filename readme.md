@@ -188,6 +188,6 @@ lisjoin(keyval_tibble, named_list, .key = key, type = 'dbl')
 
 ### Long term goals
 
-This package is partly inspired primarely by clojure’s map structure,
+This package is inspired by clojure’s map structure,
 purrr’s filosophy and design. In the long term I see it as a tool
 allowing tidy data workflows on lists.
