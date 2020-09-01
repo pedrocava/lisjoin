@@ -12,7 +12,7 @@ There no native strictly key-pair data structure to R. There is, however, a suff
 ```{R}
 {
   ids <- paste0(sample(letters, size = 1000, replace = TRUE), sample(1:10, 4, replace = TRUE))
-  named_list <- as.list(rnorm(1000))
+  named_list <- rep(list(rnorm(10)), 1000)
   names(named_list) <- ids
   head(named_list)
 }
@@ -34,7 +34,7 @@ modify_at(named_list,
   updated_list
 
 sample(named_list, 20) %>% # recover ids given condition
-  keep(~ .x < 0) %>%
+  keep(~ mean(.x) < 0) %>%
   names()
 ```
 And by that I mean this far.
@@ -61,11 +61,14 @@ Right now `lisjoin` supports key-guessing, type stable, left/right/inner/full jo
 ```{R, error = TRUE, message = FALSE, warning = FALSE}
 library(lisjoin)
 
-lisjoin(keyval_tibble, named_list, .key = key, type = 'dbl')
+map(named_list,
+    ~ reduce(.x, sum)) %>% # reducing list
+  lisjoin(keyval_tibble, 
+          .,
+          .key = key,
+          type = 'dbl')
 ```
-
-
-
+This feature is still under work, in the future expect it to work with length > 1 on the list's elements, with automatic unnesting.
 
 ### Long term goals
 

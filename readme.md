@@ -11,29 +11,35 @@ however, a sufficently good first-approach which is a named list.
 ``` r
 {
   ids <- paste0(sample(letters, size = 1000, replace = TRUE), sample(1:10, 4, replace = TRUE))
-  named_list <- as.list(rnorm(1000))
+  named_list <- rep(list(rnorm(10)), 1000)
   names(named_list) <- ids
   head(named_list)
 }
 ```
 
-    ## $y10
-    ## [1] 1.251378
+    ## $m8
+    ##  [1]  0.40840233  0.15185549  0.74321498  0.05058977  0.44946788 -0.63077498
+    ##  [7]  1.04724210  0.34529634 -0.18808432 -0.17658951
     ## 
-    ## $w4
-    ## [1] -0.7925863
+    ## $t9
+    ##  [1]  0.40840233  0.15185549  0.74321498  0.05058977  0.44946788 -0.63077498
+    ##  [7]  1.04724210  0.34529634 -0.18808432 -0.17658951
     ## 
-    ## $c8
-    ## [1] 0.9153455
+    ## $s7
+    ##  [1]  0.40840233  0.15185549  0.74321498  0.05058977  0.44946788 -0.63077498
+    ##  [7]  1.04724210  0.34529634 -0.18808432 -0.17658951
     ## 
-    ## $s10
-    ## [1] 1.288998
+    ## $f4
+    ##  [1]  0.40840233  0.15185549  0.74321498  0.05058977  0.44946788 -0.63077498
+    ##  [7]  1.04724210  0.34529634 -0.18808432 -0.17658951
     ## 
-    ## $a10
-    ## [1] -0.5573979
+    ## $w8
+    ##  [1]  0.40840233  0.15185549  0.74321498  0.05058977  0.44946788 -0.63077498
+    ##  [7]  1.04724210  0.34529634 -0.18808432 -0.17658951
     ## 
-    ## $j4
-    ## [1] -0.714583
+    ## $k9
+    ##  [1]  0.40840233  0.15185549  0.74321498  0.05058977  0.44946788 -0.63077498
+    ##  [7]  1.04724210  0.34529634 -0.18808432 -0.17658951
 
 And this approach can get you far-ish.
 
@@ -41,14 +47,14 @@ And this approach can get you far-ish.
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ──────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──
+    ## ── Attaching packages ────────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──
 
-    ## ✓ ggplot2 3.3.0     ✓ purrr   0.3.4
+    ## ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
     ## ✓ tibble  3.0.3     ✓ dplyr   1.0.2
     ## ✓ tidyr   1.1.2     ✓ stringr 1.4.0
     ## ✓ readr   1.3.1     ✓ forcats 0.5.0
 
-    ## ── Conflicts ─────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ───────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -56,7 +62,8 @@ library(tidyverse)
 pluck(named_list, sample(ids, 1)) 
 ```
 
-    ## [1] 0.8156067
+    ##  [1]  0.40840233  0.15185549  0.74321498  0.05058977  0.44946788 -0.63077498
+    ##  [7]  1.04724210  0.34529634 -0.18808432 -0.17658951
 
 ``` r
 # update specific values
@@ -68,11 +75,11 @@ modify_at(named_list,
   updated_list
 
 sample(named_list, 20) %>% # recover ids given condition
-  keep(~ .x < 0) %>%
+  keep(~ mean(.x) < 0) %>%
   names()
 ```
 
-    ##  [1] "q10" "j10" "q4"  "e4"  "v4"  "t4"  "x10" "a8"  "y10" "t8"  "n10"
+    ## character(0)
 
 And by that I mean this far.
 
@@ -85,16 +92,16 @@ And by that I mean this far.
     ## # A tibble: 100 x 2
     ##    key      val
     ##    <chr>  <dbl>
-    ##  1 h10   0.890 
-    ##  2 s8    0.0390
-    ##  3 j4    0.378 
-    ##  4 n8    0.149 
-    ##  5 z10   0.718 
-    ##  6 n10   0.877 
-    ##  7 y4    0.747 
-    ##  8 h10   0.472 
-    ##  9 e10   0.851 
-    ## 10 y10   0.838 
+    ##  1 s7    0.655 
+    ##  2 i8    0.0378
+    ##  3 g8    0.915 
+    ##  4 j8    0.563 
+    ##  5 y9    0.595 
+    ##  6 e9    0.513 
+    ##  7 j7    0.801 
+    ##  8 f4    0.498 
+    ##  9 v9    0.554 
+    ## 10 o9    0.859 
     ## # … with 90 more rows
 
 ``` r
@@ -107,36 +114,35 @@ left_join(keyval_tibble)
 left_join(keyval_tibble, named_list, by = character(), copy = TRUE)
 ```
 
-    ## # A tibble: 100 x 1,002
-    ##    key      val   y10     w4    c8   s10    a10     j4     a8    r10   w10
-    ##    <chr>  <dbl> <dbl>  <dbl> <dbl> <dbl>  <dbl>  <dbl>  <dbl>  <dbl> <dbl>
-    ##  1 h10   0.890   1.25 -0.793 0.915  1.29 -0.557 -0.715 -0.541 -0.417 0.400
-    ##  2 s8    0.0390  1.25 -0.793 0.915  1.29 -0.557 -0.715 -0.541 -0.417 0.400
-    ##  3 j4    0.378   1.25 -0.793 0.915  1.29 -0.557 -0.715 -0.541 -0.417 0.400
-    ##  4 n8    0.149   1.25 -0.793 0.915  1.29 -0.557 -0.715 -0.541 -0.417 0.400
-    ##  5 z10   0.718   1.25 -0.793 0.915  1.29 -0.557 -0.715 -0.541 -0.417 0.400
-    ##  6 n10   0.877   1.25 -0.793 0.915  1.29 -0.557 -0.715 -0.541 -0.417 0.400
-    ##  7 y4    0.747   1.25 -0.793 0.915  1.29 -0.557 -0.715 -0.541 -0.417 0.400
-    ##  8 h10   0.472   1.25 -0.793 0.915  1.29 -0.557 -0.715 -0.541 -0.417 0.400
-    ##  9 e10   0.851   1.25 -0.793 0.915  1.29 -0.557 -0.715 -0.541 -0.417 0.400
-    ## 10 y10   0.838   1.25 -0.793 0.915  1.29 -0.557 -0.715 -0.541 -0.417 0.400
-    ## # … with 90 more rows, and 991 more variables: n4 <dbl>, r8 <dbl>, b10 <dbl>,
-    ## #   w10.1 <dbl>, h4 <dbl>, x8 <dbl>, a10.1 <dbl>, b10.1 <dbl>, p4 <dbl>,
-    ## #   b8 <dbl>, o10 <dbl>, d10 <dbl>, l4 <dbl>, k8 <dbl>, q10 <dbl>, h10 <dbl>,
-    ## #   w4.1 <dbl>, a8.1 <dbl>, n10 <dbl>, c10 <dbl>, k4 <dbl>, b8.1 <dbl>,
-    ## #   m10 <dbl>, a10.2 <dbl>, m4 <dbl>, t8 <dbl>, r10.1 <dbl>, w10.2 <dbl>,
-    ## #   n4.1 <dbl>, c8.1 <dbl>, q10.1 <dbl>, y10.1 <dbl>, z4 <dbl>, p8 <dbl>,
-    ## #   q10.2 <dbl>, i10 <dbl>, p4.1 <dbl>, j8 <dbl>, u10 <dbl>, f10 <dbl>,
-    ## #   z4.1 <dbl>, h8 <dbl>, l10 <dbl>, g10 <dbl>, l4.1 <dbl>, k8.1 <dbl>,
-    ## #   g10.1 <dbl>, n10.1 <dbl>, e4 <dbl>, t8.1 <dbl>, a10.3 <dbl>, k10 <dbl>,
-    ## #   g4 <dbl>, h8.1 <dbl>, q10.3 <dbl>, f10.1 <dbl>, l4.2 <dbl>, a8.2 <dbl>,
-    ## #   c10.1 <dbl>, y10.2 <dbl>, i4 <dbl>, f8 <dbl>, a10.4 <dbl>, b10.2 <dbl>,
-    ## #   q4 <dbl>, y8 <dbl>, u10.1 <dbl>, o10.1 <dbl>, k4.1 <dbl>, g8 <dbl>,
-    ## #   p10 <dbl>, w10.3 <dbl>, x4 <dbl>, a8.3 <dbl>, o10.2 <dbl>, q10.4 <dbl>,
-    ## #   f4 <dbl>, a8.4 <dbl>, z10 <dbl>, m10.1 <dbl>, v4 <dbl>, x8.1 <dbl>,
-    ## #   n10.2 <dbl>, g10.2 <dbl>, z4.2 <dbl>, i8 <dbl>, i10.1 <dbl>, w10.4 <dbl>,
-    ## #   d4 <dbl>, v8 <dbl>, n10.3 <dbl>, n10.4 <dbl>, w4.2 <dbl>, f8.1 <dbl>,
-    ## #   a10.5 <dbl>, j10 <dbl>, g4.1 <dbl>, t8.2 <dbl>, c10.2 <dbl>, z10.1 <dbl>, …
+    ## # A tibble: 1,000 x 1,002
+    ##    key     val      m8      t9      s7      f4      w8      k9      n7      v4
+    ##    <chr> <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>
+    ##  1 s7    0.655  0.408   0.408   0.408   0.408   0.408   0.408   0.408   0.408 
+    ##  2 s7    0.655  0.152   0.152   0.152   0.152   0.152   0.152   0.152   0.152 
+    ##  3 s7    0.655  0.743   0.743   0.743   0.743   0.743   0.743   0.743   0.743 
+    ##  4 s7    0.655  0.0506  0.0506  0.0506  0.0506  0.0506  0.0506  0.0506  0.0506
+    ##  5 s7    0.655  0.449   0.449   0.449   0.449   0.449   0.449   0.449   0.449 
+    ##  6 s7    0.655 -0.631  -0.631  -0.631  -0.631  -0.631  -0.631  -0.631  -0.631 
+    ##  7 s7    0.655  1.05    1.05    1.05    1.05    1.05    1.05    1.05    1.05  
+    ##  8 s7    0.655  0.345   0.345   0.345   0.345   0.345   0.345   0.345   0.345 
+    ##  9 s7    0.655 -0.188  -0.188  -0.188  -0.188  -0.188  -0.188  -0.188  -0.188 
+    ## 10 s7    0.655 -0.177  -0.177  -0.177  -0.177  -0.177  -0.177  -0.177  -0.177 
+    ## # … with 990 more rows, and 992 more variables: c8 <dbl>, r9 <dbl>, w7 <dbl>,
+    ## #   r4 <dbl>, p8 <dbl>, c9 <dbl>, m7 <dbl>, k4 <dbl>, q8 <dbl>, s9 <dbl>,
+    ## #   z7 <dbl>, a4 <dbl>, y8 <dbl>, f9 <dbl>, h7 <dbl>, q4 <dbl>, p8.1 <dbl>,
+    ## #   t9.1 <dbl>, u7 <dbl>, q4.1 <dbl>, p8.2 <dbl>, q9 <dbl>, i7 <dbl>, s4 <dbl>,
+    ## #   x8 <dbl>, i9 <dbl>, k7 <dbl>, l4 <dbl>, u8 <dbl>, f9.1 <dbl>, j7 <dbl>,
+    ## #   z4 <dbl>, k8 <dbl>, j9 <dbl>, x7 <dbl>, w4 <dbl>, m8.1 <dbl>, x9 <dbl>,
+    ## #   g7 <dbl>, b4 <dbl>, l8 <dbl>, j9.1 <dbl>, c7 <dbl>, s4.1 <dbl>, t8 <dbl>,
+    ## #   o9 <dbl>, v7 <dbl>, c4 <dbl>, u8.1 <dbl>, c9.1 <dbl>, e7 <dbl>, q4.2 <dbl>,
+    ## #   z8 <dbl>, b9 <dbl>, p7 <dbl>, o4 <dbl>, k8.1 <dbl>, s9.1 <dbl>, k7.1 <dbl>,
+    ## #   k4.1 <dbl>, y8.1 <dbl>, k9.1 <dbl>, c7.1 <dbl>, j4 <dbl>, z8.1 <dbl>,
+    ## #   d9 <dbl>, j7.1 <dbl>, h4 <dbl>, v8 <dbl>, c9.2 <dbl>, d7 <dbl>, o4.1 <dbl>,
+    ## #   y8.2 <dbl>, a9 <dbl>, a7 <dbl>, h4.1 <dbl>, z8.2 <dbl>, y9 <dbl>,
+    ## #   z7.1 <dbl>, t4 <dbl>, b8 <dbl>, n9 <dbl>, p7.1 <dbl>, y4 <dbl>, u8.2 <dbl>,
+    ## #   z9 <dbl>, k7.2 <dbl>, o4.2 <dbl>, l8.1 <dbl>, z9.1 <dbl>, k7.3 <dbl>,
+    ## #   h4.2 <dbl>, i8 <dbl>, g9 <dbl>, n7.1 <dbl>, f4.1 <dbl>, x8.1 <dbl>,
+    ## #   i9.1 <dbl>, x7.1 <dbl>, t4.1 <dbl>, …
 
 `lisjoin`, as of now, provides a lazy prototypical approach:
 
@@ -146,48 +152,56 @@ library(lisjoin)
 lisjoin(keyval_tibble, named_list, .key = key)
 ```
 
-    ## # A tibble: 1,362 x 3
-    ##    key     val list_val 
-    ##    <chr> <dbl> <list>   
-    ##  1 h10   0.890 <dbl [1]>
-    ##  2 h10   0.890 <dbl [1]>
-    ##  3 h10   0.890 <dbl [1]>
-    ##  4 h10   0.890 <dbl [1]>
-    ##  5 h10   0.890 <dbl [1]>
-    ##  6 h10   0.890 <dbl [1]>
-    ##  7 h10   0.890 <dbl [1]>
-    ##  8 h10   0.890 <dbl [1]>
-    ##  9 h10   0.890 <dbl [1]>
-    ## 10 h10   0.890 <dbl [1]>
-    ## # … with 1,352 more rows
+    ## # A tibble: 1,055 x 3
+    ##    key      val list_val  
+    ##    <chr>  <dbl> <list>    
+    ##  1 s7    0.655  <dbl [10]>
+    ##  2 s7    0.655  <dbl [10]>
+    ##  3 s7    0.655  <dbl [10]>
+    ##  4 s7    0.655  <dbl [10]>
+    ##  5 s7    0.655  <dbl [10]>
+    ##  6 s7    0.655  <dbl [10]>
+    ##  7 s7    0.655  <dbl [10]>
+    ##  8 s7    0.655  <dbl [10]>
+    ##  9 s7    0.655  <dbl [10]>
+    ## 10 i8    0.0378 <dbl [10]>
+    ## # … with 1,045 more rows
 
-Right now `lisjoin` supports key-guessing, type stability and
+Right now `lisjoin` supports key-guessing, type stable,
 left/right/inner/full joins. For example, since we know the output is
 going to be a double-precision number:
 
 ``` r
 library(lisjoin)
 
-lisjoin(keyval_tibble, named_list, .key = key, type = 'dbl')
+map(named_list,
+    ~ reduce(.x, sum)) %>% # reducing list
+  lisjoin(keyval_tibble, 
+          .,
+          .key = key,
+          type = 'dbl')
 ```
 
-    ## # A tibble: 1,362 x 3
-    ##    key     val list_val
-    ##    <chr> <dbl>    <dbl>
-    ##  1 h10   0.890   -0.267
-    ##  2 h10   0.890   -0.267
-    ##  3 h10   0.890   -0.267
-    ##  4 h10   0.890   -0.267
-    ##  5 h10   0.890   -0.267
-    ##  6 h10   0.890   -0.267
-    ##  7 h10   0.890   -0.267
-    ##  8 h10   0.890   -0.267
-    ##  9 h10   0.890   -0.267
-    ## 10 h10   0.890   -0.267
-    ## # … with 1,352 more rows
+    ## # A tibble: 1,055 x 3
+    ##    key      val list_val
+    ##    <chr>  <dbl>    <dbl>
+    ##  1 s7    0.655      2.20
+    ##  2 s7    0.655      2.20
+    ##  3 s7    0.655      2.20
+    ##  4 s7    0.655      2.20
+    ##  5 s7    0.655      2.20
+    ##  6 s7    0.655      2.20
+    ##  7 s7    0.655      2.20
+    ##  8 s7    0.655      2.20
+    ##  9 s7    0.655      2.20
+    ## 10 i8    0.0378     2.20
+    ## # … with 1,045 more rows
+
+This feature is still under work, in the future expect it to work with
+length \> 1 on the list’s elements, with automatic unnesting.
 
 ### Long term goals
 
-This package is inspired by clojure’s map structure,
+This package is partly inspired primarely by clojure’s map structure,
 purrr’s filosophy and design. In the long term I see it as a tool
 allowing tidy data workflows on lists.
