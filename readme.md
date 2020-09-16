@@ -179,7 +179,7 @@ going to be a double-precision number:
 library(lisjoin)
 
 map(named_list,
-    ~ reduce(.x, sum)) %>% # reducing list
+    ~ reduce(.x, sum)) %>% 
   lisjoin(keyval_tibble, 
           .,
           .key = key,
@@ -201,8 +201,7 @@ map(named_list,
     ## 10 j28   0.686    0.376
     ## # … with 1,003 more rows
 
-This feature is still under work, in the future expect it to work with
-length \> 1 on the list’s elements, with automatic unnesting.
+
 
 ### Long term goals
 
