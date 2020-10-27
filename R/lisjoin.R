@@ -11,6 +11,7 @@
 #' @import rlang
 #' @import dplyr
 #' @import purrr
+#' @import glue
 #' @export
 
 
@@ -21,7 +22,8 @@ lisjoin <- function(.tibble, .list, .key,
   if(missing(.key) & length(intersect(names(.tibble), names(.list))) == 1 & .key_guessing) {
 
     possible_keys <- intersect(names(.tibble), names(.list))
-    rlang::inform(message = glue::glue("Guessing {possible_keys} as key. Consider turning off parameter .key_guessing in production environment.") %>% as.character())
+    rlang::inform(message = glue::glue("Guessing {reduce(possible_keys, partial(paste, sep = ', '))} as key. Consider turning off parameter .key_guessing in production environment.") %>% 
+                  rlang::as_string())
 
   } else if(missing(.key) & length(intersect(names(.tibble), names(.list))) == 1 & !.key_guessing) {
 
@@ -37,7 +39,7 @@ lisjoin <- function(.tibble, .list, .key,
 
   if("list_val" %in% names(.tibble)) {
 
-    rlang::abort("Please rename variable ``list_vall`` in the tibble")
+    rlang::abort("Please rename variable list_vall in the tibble")
 
   }
 
