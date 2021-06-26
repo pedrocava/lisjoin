@@ -2,11 +2,9 @@
 #'
 #' @param .tibble A tibble to be joined to `.list`
 #' @param .list a named list. Passing an unnamed list will throw an error.
-#' @param .key a symbol containing the variable name in `.tibble` to be used as key.
+#' @param key a symbol containing the variable name in `.tibble` to be used as key.
 #' @param name name of the new variable with matched values from `.list`. Defaults to "val".
 #' @param strategy How should values be matched? Specify either 'left', 'right', 'inner' or 'full' to use the matching `dplyr::x_join`. Defaults to 'left'.
-#' @param types Should the operation enforce types? Defaults to no types, but users can enforce by choosing among 'int', 'dbl', 'chr' and 'lgl'.
-#' @param .key_guessing Should keys be guessed if not provided? Defaults to true.
 #'
 #' @import rlang
 #' @import dplyr
@@ -15,56 +13,69 @@
 #' @export
 
 
-lisjoin <- function(.tibble, .list, .key,
-                    name = "val", strategy = "left",
-                    types, .key_guessing = TRUE) {
+lisjoin <- function(
+  .tibble,
+  .list,
+  key,
+  name = "val",
+  strategy = "left") {
 
-  if(missing(.key) & length(intersect(names(.tibble), names(.list))) == 1 & .key_guessing) {
+  key <- rlang::ensym(key)
 
-    possible_keys <- intersect(names(.tibble), names(.list))
-    rlang::inform(message = glue::glue("Guessing {reduce(possible_keys, partial(paste, sep = ', '))} as key. Consider turning off parameter .key_guessing in production environment.") %>% 
-                  rlang::as_string())
+  if(rlang::is_null(names(.list))) {
 
-  } else if(missing(.key) & length(intersect(names(.tibble), names(.list))) == 1 & !.key_guessing) {
-
-    rlang::abort("No key provided")
-
-  } else if (!missing(.key)) {
-
-    .key <- rlang::ensym(.key)
-    name <- rlang::sym(name)
+    rlang::abort("Param .list must be a named list.")
 
   }
+
+  if(!rlang::is_list(.list)) {
+
+    rlang::abort("Param .list must be a list")
+
+  }
+
+  specified_join <-
+    purrr::pluck(
+      list(
+        left = dplyr::left_join,
+        right = dplyr::right_join,
+        inner = dplyr::inner_join,
+        full = dplyr::full_join),
+      strategy)
+
+  tibble::tibble(key = names(.list)) %>%
+    dplyr::mutate(
+      list_val = purrr::map(
+        .x = key,
+        .f = ~ purrr::pluck(.list, .x))) ->
+    .listib
+
+  .tibble %>%
+    specified_join(
+      .listib,
+      by = rlang::as_string(key))
+
+}
+
+
+lisjoin <- function(
+  .tibble,
+  .list,
+  key,
+  name = "val",
+  strategy = "left",
+  .key_guessing = TRUE) {
+
+
+  .key <- rlang::ensym(key)
+  name <- rlang::sym(name)
 
 
   if("list_val" %in% names(.tibble)) {
 
-    rlang::abort("Please rename variable list_vall in the tibble")
+    rlang::abort("Please rename variable `list_vall` in the tibble")
 
   }
-
-
-  if(rlang::is_missing(types)) { # check for nulity
-
-    specified_map <- purrr::map
-
-  } else if(!types %in% c("int", "dbl", "chr", "lgl")) { # check for mispecification
-
-    rlang::abort("Param types must be one of the following: 'int', 'dbl', 'chr', 'lgl'.")
-
-  } else { # if not null and properly specified then find requested function
-
-    specified_map <-
-      purrr::pluck(
-        list(int = purrr::map_int,
-             dbl = purrr::map_dbl,
-             chr = purrr::map_chr,
-             lgl = purrr::map_lgl),
-        types
-      )
-
-  }
-
 
   if(!strategy %in% c("left", "right", "inner", "full")) {
 
@@ -84,17 +95,7 @@ lisjoin <- function(.tibble, .list, .key,
 
   }
 
-  if(is.null(names(.list))) {
 
-    rlang::abort("Param .list must be a named list.")
-
-  }
-
-  if(!is.list(.list)) {
-
-    rlang::abort("Param .list must be a list")
-
-  }
 
   specified_join <-
     purrr::pluck(
@@ -102,16 +103,18 @@ lisjoin <- function(.tibble, .list, .key,
            right = dplyr::right_join,
            inner = dplyr::inner_join,
            full = dplyr::full_join),
-      strategy
-      )
+      strategy)
 
 
+  tibble::tibble(key = names(.list)) %>%
+    dplyr::mutate(
+      list_val = purrr::map(
+        .x = key,
+        .f = ~ purrr::pluck(.list, .x))) ->
+    .listib
 
-  .listib <- tibble::tibble(key = names(.list)) %>%
-              dplyr::mutate(list_val = specified_map(key, ~ purrr::pluck(.list, .x)))
 
-
-  specified_join(.tibble, .listib, by = rlang::as_string(.key))
+  specified_join(.tibble, .listib, by = rlang::as_string(key))
 
 
 }
